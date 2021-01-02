@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Hello OpenCV.js</title>
+</head>
+
+<body>
+    <h2>Pic Made From Unicode Text</h2>
+    <p id="status">OpenCV.js is loading...</p>
+    <div>
+        <div class="inputoutput">
+            <img id="imageSrc" alt="No Image" />
+            <div class="caption">imageSrc <input type="file" id="fileInput" name="file" /></div>
+
+            <textarea id="resultPic" name="resultPic" rows="50" cols="50" style="font-size: 5px;">
+                At w3schools.com you will learn how to make a website. They offer free tutorials in all web development technologies.
+                </textarea>
+            <!-- <canvas id="outputCanvas"></canvas> -->
+        </div>
+    </div>
+    <script type="text/javascript">
+        const textWidth = 100; // number of text characters in text pic
+        const resultPic = document.getElementById("resultPic");
+        let imgElement = document.getElementById("imageSrc")
+        let inputElement = document.getElementById("fileInput");
+        inputElement.addEventListener("change", (e) => {
+            imgElement.src = URL.createObjectURL(e.target.files[0]);
+        }, false);
+
+        imgElement.onload = function () {
+            var result = "";
+            let src = cv.imread(imgElement);
+            const srcHeight = src.size().height;
+            const srcWidth = src.size().width;
+            let graySrc = new cv.Mat();
+            cv.cvtColor(src, graySrc, cv.COLOR_RGBA2GRAY, 0);
+            let output = new cv.Mat();
+            const rectWidth = Math.round(srcWidth / textWidth); // Length side of rect after division
+            for (let j = 0; j < srcHeight; j += rectWidth) { //left to right
+                for (let i = 0; i < srcWidth; i += rectWidth) { //top to bottom
+                    let addWidth = rectWidth;
+                    let addHeight = rectWidth;
+                    if (i + rectWidth > srcWidth) addWidth = srcWidth - i;
+                    if (j + rectWidth > srcHeight) addHeight = srcHeight - j;
+
+                    let rect = new cv.Rect(i, j, addWidth, addHeight);
+                    output = graySrc.roi(rect);
+                    result += numToShade(averageArray(output.data)) + " ";
+                }
+                result += '\n';
+            }
+            resultPic.value = result
+        }
+
+        function onOpenCvReady() {
+            document.getElementById('status').innerHTML = 'OpenCV.js is ready.';
+        }
+
+        function averageArray(array) {
+            let total = 0;
+            for (let i = 0; i < array.length; i++) {
+                total += array[i];
+            }
+            return Math.round(total / array.length);
+        }
+
+        function numToShade(num) {
+            if (num >= 0 && num <= 50) {
+                return '█';
+            }
+            if (num >= 51 && num <= 101) {
+                return '▓';
+            }
+            if (num >= 102 && num <= 152) {
+                return '▒';
+            }
+            if (num >= 153 && num <= 203) {
+                return '░';
+            }
+            if (num >= 204 && num <= 255) {
+                return ' ';
+            }
+        }
+    </script>
+    <script async src="opencv.js" onload="onOpenCvReady();" type="text/javascript"></script>
+</body>
+
+</html>
