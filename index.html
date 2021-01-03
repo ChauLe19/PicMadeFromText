@@ -15,9 +15,9 @@
         <input type="checkbox" id="notSpace" name="notSpace" value="notSpace">
         <label for="notSpace"> For FB/Discord/YT?</label><br>
         <button onclick="process()">Process</button>
-        <div class="inputoutput">
+        <div>
             <img id="imageSrc" alt="No Image" />
-            <div class="caption">Input image: <input type="file" id="fileInput" name="file" /></div>
+            <div>Input image: <input type="file" id="fileInput" name="file" /></div>
             <textarea id="resultPic" name="resultPic" rows="50" cols="50" style="font-size: 5px;">
                 Output here
             </textarea>
@@ -88,6 +88,8 @@
 
         function onOpenCvReady() {
             document.getElementById('status').innerHTML = 'OpenCV.js is ready.';
+            fetch("default.png").then(val => val.blob()).then(blob => { imgElement.src = URL.createObjectURL(blob);})
+
         }
 
         function averageArray(array) {
