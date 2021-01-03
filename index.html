@@ -12,10 +12,12 @@
     <div>
         <label for="textWidth">Text width: </label><input id="textWidth" type="number" value=50>
         <label for="fontSize">Font size: </label><input id="fontSize" type="number" value=5>
+        <input type="checkbox" id="notSpace" name="notSpace" value="notSpace">
+        <label for="notSpace"> For FB/Discord/YT?</label><br>
         <button onclick="process()">Process</button>
         <div class="inputoutput">
             <img id="imageSrc" alt="No Image" />
-            <div class="caption">imageSrc <input type="file" id="fileInput" name="file" /></div>
+            <div class="caption">Input image: <input type="file" id="fileInput" name="file" /></div>
             <textarea id="resultPic" name="resultPic" rows="50" cols="50" style="font-size: 5px;">
                 Output here
             </textarea>
@@ -27,6 +29,8 @@
         const imgElement = document.getElementById("imageSrc")
         const inputElement = document.getElementById("fileInput");
         const resultPic = document.getElementById("resultPic");
+        const notSpaceInput = document.getElementById("notSpace")
+        const optionsForm = document.getElementById("options")
 
         inputElement.addEventListener("change", (e) => {
             imgElement.src = URL.createObjectURL(e.target.files[0]);
@@ -35,48 +39,47 @@
         fontSizeInput.addEventListener("change", (e) => {
             resultPic.style.fontSize = fontSizeInput.value + "px";
         })
-        
+
         imgElement.onload = function () {
             process();
         }
 
 
-        
-        function process()
-        {
+
+        function process() {
             let textWidth = textWidthInput.value; // number of text characters in text pic
-            var result = "";
             let src = cv.imread(imgElement);
+            const offset = 1.75
+            let result = convPicToTexts(src, textWidth, offset)
             const srcHeight = src.size().height;
             const srcWidth = src.size().width;
-            const rectWidth = Math.round(srcWidth / textWidth); // Length side of rect after division
-            const offset = 1.75
-            result = convPicToTexts(src, textWidth,offset)
-            resultPic.rows = srcHeight/(offset*rectWidth);
-            resultPic.cols = srcWidth/rectWidth; // *2 cuz we add a space in between each char
+            const rectWidth = Math.max(1, srcWidth / textWidth); // Length side of rect after division
+            //adaptive textarea
+            resultPic.rows = srcHeight / (offset * rectWidth);
+            resultPic.cols = srcWidth / rectWidth; // *2 cuz we add a space in between each char
             console.log(resultPic.rows, resultPic.cols)
             resultPic.value = result
         }
 
-        function convPicToTexts(src, textWidth, offset)
-        {
+        function convPicToTexts(src, textWidth, offset) {
             let result = "";
             const srcHeight = src.size().height;
             const srcWidth = src.size().width;
             let graySrc = new cv.Mat();
             cv.cvtColor(src, graySrc, cv.COLOR_RGBA2GRAY, 0);
             let section = new cv.Mat();
-            const rectWidth = Math.round(srcWidth / textWidth); // Length side of rect after division
-            for (let j = 0; j < srcHeight; j += rectWidth * offset) { //left to right
-                for (let i = 0; i < srcWidth; i += rectWidth) { //top to bottom
+            const rectWidth = Math.max(1, srcWidth / textWidth); // Length side of rect after division
+            for (let j = 0; j < srcHeight; j += rectWidth * offset) { //top to bottom
+                for (let i = 0; i < srcWidth; i += rectWidth) { // left to right
                     let addWidth = rectWidth;
                     let addHeight = rectWidth * offset;
                     if (i + rectWidth > srcWidth) addWidth = srcWidth - i;
-                    if (j + offset* rectWidth > srcHeight) addHeight = srcHeight - j;
+                    if (j + offset * rectWidth > srcHeight) addHeight = srcHeight - j;
 
                     let rect = new cv.Rect(i, j, addWidth, addHeight);
                     section = graySrc.roi(rect);
                     result += numToShade(averageArray(section.data));
+                    section.delete()
                 }
                 result += '\n';
             }
@@ -109,9 +112,23 @@
                 return '░';
             }
             if (num >= 204 && num <= 256) {
-                return ' ';
+                return notSpaceInput.checked ? '┐' : ' ';
             }
         }
+        // function numToShade2(num) {
+        //     if (num >= 0 && num <= 63) {
+        //         return '█';
+        //     }
+        //     if (num >= 64 && num <= 127) {
+        //         return '▓';
+        //     }
+        //     if (num >= 128 && num <= 191) {
+        //         return '▒';
+        //     }
+        //     if (num >= 192 && num <= 256) {
+        //         return '░';
+        //     }
+        // }
     </script>
     <script async src="opencv.js" onload="onOpenCvReady();" type="text/javascript"></script>
 </body>
