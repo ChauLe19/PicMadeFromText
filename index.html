@@ -92,7 +92,7 @@
             for (let i = 0; i < array.length; i++) {
                 total += array[i];
             }
-            return Math.round(total / array.length);
+            return Math.round(total / array.length) || 0;
         }
 
         function numToShade(num) {
@@ -108,7 +108,7 @@
             if (num >= 153 && num <= 203) {
                 return '░';
             }
-            if (num >= 204 && num <= 255) {
+            if (num >= 204 && num <= 256) {
                 return ' ';
             }
         }
